@@ -46,7 +46,7 @@ public:
         listaAdj[destino] = novo_no;
     }
 
-    int dijkstra(int origem, int* geradores) {
+    int prim(int origem = 0) {
         int* dist = new int[numVertices];
         bool* marcado = new bool[numVertices];
 
@@ -57,7 +57,7 @@ public:
 
         dist[origem] = 0;
 
-        for (int cont = 0; cont < numVertices - 1; cont++) {
+        for (int cont = 0; cont < numVertices; cont++) {
             int minDist = INF;
             int u = -1;
 
@@ -77,25 +77,23 @@ public:
                 int v = vizinho->destino;
                 int peso_aresta = vizinho->peso;
 
-                if (!marcado[v] && dist[u] != INF && dist[u] + peso_aresta + geradores[u] < dist[v]) {
-                    dist[v] = dist[u] + peso_aresta + geradores[u];
+                if (!marcado[v] && dist[u] != INF && peso_aresta < dist[v]) {
+                    dist[v] = peso_aresta;
                 }
 
                 vizinho = vizinho->prox;
             }
         }
 
-        int max_dist = -1;
+        int peso_total = 0;
         for (int i = 0; i < numVertices; i++) {
-            if (dist[i] > max_dist) {
-                max_dist = dist[i];
-            }
+            peso_total += dist[i];
         }
 
         delete[] dist;
         delete[] marcado;
 
-        return max_dist;
+        return peso_total;
     }
 };
 
@@ -106,11 +104,12 @@ int main(int argc, char *argv[]) {
     int n, m, soma;
     cin >> n >> m;
 
-    Grafo g(n);
-    int ger[n];
+    Grafo g(n+1);
+    int geradores[n];
 
-    for (int i = 0; i < n; i++) {
-        cin >> ger[i];
+    for (int i = 1; i <= n; i++) {
+        cin >> geradores[i];
+        g.adicionarAresta(0, i, geradores[i]);
     }
 
     int u, v, c;
@@ -119,13 +118,7 @@ int main(int argc, char *argv[]) {
         g.adicionarAresta(u, v, c);
     }
 
-    int soma_total = -1, it;
-    for (int i = 0; i < n; i++) {
-        it = g.dijkstra(i, ger);
-        if (it > soma_total) {
-            soma_total = it;
-        }
-    }
+    int soma_total = g.prim();
 
     cout << soma_total << endl;
 
