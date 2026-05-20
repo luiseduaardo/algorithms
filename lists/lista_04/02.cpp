@@ -46,15 +46,13 @@ public:
         listaAdj[destino] = novo_no;
     }
 
-    int dijkstra(int origem) {
+    int dijkstra(int origem, int* geradores) {
         int* dist = new int[numVertices];
         bool* marcado = new bool[numVertices];
-        int* antecessor = new int[numVertices];
 
         for (int i = 0; i < numVertices; i++) {
             dist[i] = INF;
             marcado[i] = false;
-            antecessor[i] = -1;
         }
 
         dist[origem] = 0;
@@ -79,9 +77,8 @@ public:
                 int v = vizinho->destino;
                 int peso_aresta = vizinho->peso;
 
-                if (!marcado[v] && dist[u] != INF && dist[u] + peso_aresta < dist[v]) {
-                    dist[v] = dist[u] + peso_aresta;
-                    antecessor[v] = u;
+                if (!marcado[v] && dist[u] != INF && dist[u] + peso_aresta + geradores[u] < dist[v]) {
+                    dist[v] = dist[u] + peso_aresta + geradores[u];
                 }
 
                 vizinho = vizinho->prox;
@@ -97,7 +94,6 @@ public:
 
         delete[] dist;
         delete[] marcado;
-        delete[] antecessor;
 
         return max_dist;
     }
@@ -108,15 +104,13 @@ int main(int argc, char *argv[]) {
     cin.tie(nullptr);
 
     int n, m, soma;
-    int soma_total, val;
-    soma_total = 0;
-
     cin >> n >> m;
-    Grafo g(n);
 
-    while (n--) {
-        cin >> val;
-        soma_total += val;
+    Grafo g(n);
+    int ger[n];
+
+    for (int i = 0; i < n; i++) {
+        cin >> ger[i];
     }
 
     int u, v, c;
@@ -125,14 +119,13 @@ int main(int argc, char *argv[]) {
         g.adicionarAresta(u, v, c);
     }
 
-    int max_val = -1;
+    int soma_total = -1, it;
     for (int i = 0; i < n; i++) {
-        int res_dijkstra = g.dijkstra(i);
-        if (res_dijkstra > max_val) {
-            max_val = res_dijkstra;
+        it = g.dijkstra(i, ger);
+        if (it > soma_total) {
+            soma_total = it;
         }
     }
-    soma_total += max_val;
 
     cout << soma_total << endl;
 
