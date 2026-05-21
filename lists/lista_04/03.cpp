@@ -16,26 +16,6 @@ private:
     int numVertices;
     No** listaAdj;
 
-    void print_caminho(int v, int* antecessor) {
-        if (v == -1) return;
-        
-        print_caminho(antecessor[v], antecessor);
-        cout << v << " ";
-    }
-
-    void print_dijkstra(int origem, int* dist, int* antecessor) {
-        cout << "Distancias da origem " << origem << " ate os outros vertices:" << endl;
-        for (int i = 0; i < numVertices; i++) {
-            if (dist[i] == INF) {
-                cout << "Vertice " << i << ": Inacessivel" << endl;
-            } else {
-                cout << "Vertice " << i << ": Distancia = " << dist[i] << " | Caminho = ";
-                print_caminho(i, antecessor);
-                cout << endl;
-            }
-        }
-    }
-
 public:
     Grafo(int vertices) {
         numVertices = vertices;
@@ -61,64 +41,123 @@ public:
     void adicionarAresta(int origem, int destino, int peso = 1) {
         No* novo_no = new No{destino, peso, listaAdj[origem]};
         listaAdj[origem] = novo_no;
-
-        novo_no = new No{origem, peso, listaAdj[destino]};
-        listaAdj[destino] = novo_no;
     }
 
-    void dijkstra(int origem) {
-        int* dist = new int[numVertices];
+    bool bfs_alcanca(bool* origens, int destino) {
         bool* marcado = new bool[numVertices];
-        int* antecessor = new int[numVertices];
+        int* fila = new int[numVertices];
+        int frente = 0, tras = 0;
 
         for (int i = 0; i < numVertices; i++) {
-            dist[i] = INF;
-            marcado[i] = false;
-            antecessor[i] = -1;
+            marcado[i] = origens[i];
+            if (origens[i]) {
+                fila[tras++] = i;
+            }
         }
 
-        dist[origem] = 0;
+        bool chegou = false;
 
-        for (int cont = 0; cont < numVertices - 1; cont++) {
-            int minDist = INF;
-            int u = -1;
+        while (frente < tras) {
+            int v = fila[frente++];
 
-            for (int v = 0; v < numVertices; v++) {
-                if (!marcado[v] && dist[v] <= minDist) {
-                    minDist = dist[v];
-                    u = v;
-                }
+            if (v == destino) {
+                chegou = true;
+                break;
             }
 
-            if (u == -1) break;
-
-            marcado[u] = true;
-
-            No* vizinho = listaAdj[u];
+            No* vizinho = listaAdj[v];
             while (vizinho != nullptr) {
-                int v = vizinho->destino;
-                int peso_aresta = vizinho->peso;
-
-                if (!marcado[v] && dist[u] != INF && dist[u] + peso_aresta < dist[v]) {
-                    dist[v] = dist[u] + peso_aresta;
-                    antecessor[v] = u;
+                int u = vizinho->destino;
+                if (!marcado[u]) {
+                    marcado[u] = true;
+                    fila[tras++] = u;
                 }
-
                 vizinho = vizinho->prox;
             }
         }
 
-        print_dijkstra(origem, dist, antecessor);
+        delete[] marcado;
+        delete[] fila;
+        
+        return chegou;
+    }
+
+    int bellman_ford(int origem, int destino) {
+        int* dist = new int[numVertices];
+
+        for (int i = 0; i < numVertices; i++) {
+            dist[i] = INF;
+        }
+        dist[origem] = 0;
+
+        for (int i = 0; i < numVertices - 1; i++) {
+            for (int u = 0; u < numVertices; u++) {
+                No* vizinho = listaAdj[u];
+                while (vizinho != nullptr) {
+                    int v = vizinho->destino;
+                    if (dist[u] + vizinho->peso < dist[v]) {
+                        dist[v] = dist[u] + vizinho->peso;
+                    }
+                    vizinho = vizinho->prox;
+                }
+            }
+        }
+
+        // aqui eu verifico se existe algum ciclo
+        bool* em_ciclo = new bool[numVertices];
+        for (int i = 0; i < numVertices; i++) em_ciclo[i] = false;
+        bool achou_ciclo = false;
+
+        for (int u = 0; u < numVertices; u++) {
+            No* vizinho = listaAdj[u];
+            while (vizinho != nullptr) {
+                int v = vizinho->destino;
+                if (dist[u] + vizinho->peso < dist[v]) {
+                    em_ciclo[v] = true;
+                    achou_ciclo = true;
+                }
+                vizinho = vizinho->prox;
+            }
+        }
+
+        // caso eu tenha achado algum ciclo, aqui vai verificar se o ciclo vai de alguma forma impactar o caminho entre a origem e o destino
+        if (achou_ciclo && bfs_alcanca(em_ciclo, destino)) {
+            delete[] dist;
+            delete[] em_ciclo;
+            return -INF;
+        }
+
+        int d = dist[destino];
 
         delete[] dist;
-        delete[] marcado;
-        delete[] antecessor;
+
+        return d;
     }
 };
 
 int main(int argc, char *argv[]) {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+
+    int n,m,s,t;
+    cin >> n >> m >> s >> t;
+    Grafo g(n);
+
+    int u,v,w;
+    for (int i = 0; i < m; i++) {
+        cin >> u >> v >> w;
+        g.adicionarAresta(u-1, v-1, w);
+    }
+
+    int result = g.bellman_ford(s-1,t-1);
+
+    if (result == INF) {
+        cout << "IMPOSSIVEL" << endl;
+    } else if (result == -INF) {
+        cout << "ROTA INVALIDA" << endl;
+    } else {
+        cout << result << endl;
+    }
 
     return 0;
 }
