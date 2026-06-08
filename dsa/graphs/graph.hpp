@@ -75,9 +75,6 @@ public:
     void adicionarAresta(int origem, int destino, int peso = 1) {
         No* novo_no = new No{destino, peso, listaAdj[origem]};
         listaAdj[origem] = novo_no;
-
-        novo_no = new No{origem, peso, listaAdj[destino]};
-        listaAdj[destino] = novo_no;
     }
 
     void dfs() {

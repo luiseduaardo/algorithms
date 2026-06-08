@@ -6,16 +6,22 @@
 using namespace std;
 
 int main() {
-    Grafo g(6);
+    Grafo g(8);
 
-    g.adicionarAresta(0, 1, 4);
-    g.adicionarAresta(0, 2, 1);
-    g.adicionarAresta(1, 2, 2);
-    g.adicionarAresta(1, 3, 1);
-    g.adicionarAresta(2, 3, 5);
-    g.adicionarAresta(3, 4, 3);
+    g.adicionarAresta(0,1);
+    g.adicionarAresta(0,2);
+    g.adicionarAresta(0,3);
+    g.adicionarAresta(1,0);
+    g.adicionarAresta(1,5);
+    g.adicionarAresta(2,1);
+    g.adicionarAresta(2,6);
+    g.adicionarAresta(3,1);
+    g.adicionarAresta(3,7);
+    g.adicionarAresta(6,5);
+    g.adicionarAresta(6,7);
+    g.adicionarAresta(7,5);
 
-    g.dijkstra(0);
+    g.dfs();
 
     return 0;
 }
